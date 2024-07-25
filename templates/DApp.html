@@ -5,40 +5,117 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>存储合约界面</title>
     <script src="/static/web3.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #45a049;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .left-align {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #45a049;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #3d8c42;
+        }
+        input[type="number"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .button-container form {
+            margin: 0 10px;
+        }
+        .button-container form input[type="submit"] {
+            background-color: #45a049;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100px;
+        }
+        .button-container form input[type="submit"]:hover {
+            background-color: #3d8c42;
+        }
+    </style>
 </head>
 <body>
-    <h1>存储合约界面</h1>
+    <div class="container">
+        <h1>存储合约界面</h1>
+        
+        <div class="left-align">
+            <h2>连接钱包</h2>
+            <button id="connectButton">连接钱包</button>
+            <p id="walletAddress">未连接</p>
+        </div>
+
+        <div class="left-align">
+            <h2>存储值</h2>
+            <input type="number" id="storeValue" placeholder="输入要存储的值">
+            <button onclick="storeValue()">存储</button>
+        </div>
+        
+        <div class="left-align">
+            <h2>查看存储的值</h2>
+            <button onclick="viewValue()">查看</button>
+            <p id="storedValue">存储的值将在此显示</p>
+        </div>
+
+        <div class="button-container">
+            <form action="/main" method="post">
+                <input type="submit" value="Main">
+            </form>
+            <form action="/" method="post">
+                <input type="submit" value="Login">
+            </form>
+        </div>
+    </div>
     
-    <div>
-        <h2>连接钱包</h2>
-        <button id="connectButton">连接钱包</button>
-        <p id="walletAddress">未连接</p>
-    </div>
-
-    <div>
-        <h2>存储值</h2>
-        <input type="number" id="storeValue" placeholder="输入要存储的值">
-        <button onclick="storeValue()">存储</button>
-    </div>
-    
-    <div>
-        <h2>查看存储的值</h2>
-        <button onclick="viewValue()">查看</button>
-        <p id="storedValue">存储的值将在此显示</p>
-    </div>
-
-	<form action="/main" method="post">
-	    <p><input type="submit" value="Main"></p>
-	</form>
-	 
-	<form action="/" method="post">
-	    <p><input type="submit" value="Login Page"></p>
-	</form>
-
-	
-	
     <script>
         let accounts = [];
+        let isRequestPending = false; // 用于跟踪请求状态
 
         // 初始化web3
         if (typeof web3 !== 'undefined') {
@@ -73,39 +150,55 @@
 
         // 连接钱包函数
         async function connectWallet() {
+            if (isRequestPending) return;
+            isRequestPending = true;
+
             if (window.ethereum) {
                 try {
                     accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                     document.getElementById('walletAddress').innerText = `已连接: ${accounts[0]}`;
                 } catch (error) {
                     console.error("连接钱包失败:", error);
+                } finally {
+                    isRequestPending = false;
                 }
             } else {
                 alert("请安装MetaMask!");
+                isRequestPending = false;
             }
         }
 
         // 存储值函数
         async function storeValue() {
+            if (isRequestPending) return;
+            isRequestPending = true;
+
             const value = document.getElementById('storeValue').value;
             if (accounts.length == 0) {
                 alert('请先连接钱包');
+                isRequestPending = false;
                 return;
             }
             contract.methods.store(value).send({ from: accounts[0] })
                 .on('receipt', function(receipt) {
                     alert('值存储成功');
+                    isRequestPending = false;
                 })
                 .on('error', function(error) {
                     console.error(error);
                     alert('存储值时发生错误');
+                    isRequestPending = false;
                 });
         }
 
         // 查看存储的值函数
         async function viewValue() {
+            if (isRequestPending) return;
+            isRequestPending = true;
+
             const value = await contract.methods.view_money().call();
             document.getElementById('storedValue').innerText = value;
+            isRequestPending = false;
         }
 
         // 添加事件监听器
