@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>存储合约界面</title>
+    <script src="node_modules/web3/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>存储合约界面</h1>
+    
+    <div>
+        <h2>连接钱包</h2>
+        <button id="connectButton">连接钱包</button>
+        <p id="walletAddress">未连接</p>
+    </div>
+
+    <div>
+        <h2>存储值</h2>
+        <input type="number" id="storeValue" placeholder="输入要存储的值">
+        <button onclick="storeValue()">存储</button>
+    </div>
+    
+    <div>
+        <h2>查看存储的值</h2>
+        <button onclick="viewValue()">查看</button>
+        <p id="storedValue">存储的值将在此显示</p>
+    </div>
+
+	<form action="/main" method="post">
+	    <p><input type="submit" value="Main"></p>
+	</form>
+	 
+	<form action="/" method="post">
+	    <p><input type="submit" value="Login Page"></p>
+	</form>
+
+	
+	
+    <script>
+        let accounts = [];
+
+        // 初始化web3
+        if (typeof web3 !== 'undefined') {
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        }
+
+        // 合约ABI
+        const abi = [
+            {
+                "inputs": [{"internalType": "uint256","name": "num","type": "uint256"}],
+                "name": "store",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "view_money",
+                "outputs": [{"internalType": "uint256","name": "","type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        // 合约地址
+        const address = '0x3C8e9bc357e2419Be7Ee5fEc6462fF37C0Cf0c29';
+
+        // 创建合约实例
+        const contract = new web3.eth.Contract(abi, address);
+
+        // 连接钱包函数
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    document.getElementById('walletAddress').innerText = `已连接: ${accounts[0]}`;
+                } catch (error) {
+                    console.error("连接钱包失败:", error);
+                }
+            } else {
+                alert("请安装MetaMask!");
+            }
+        }
+
+        // 存储值函数
+        async function storeValue() {
+            const value = document.getElementById('storeValue').value;
+            if (accounts.length == 0) {
+                alert('请先连接钱包');
+                return;
+            }
+            contract.methods.store(value).send({ from: accounts[0] })
+                .on('receipt', function(receipt) {
+                    alert('值存储成功');
+                })
+                .on('error', function(error) {
+                    console.error(error);
+                    alert('存储值时发生错误');
+                });
+        }
+
+        // 查看存储的值函数
+        async function viewValue() {
+            const value = await contract.methods.view_money().call();
+            document.getElementById('storedValue').innerText = value;
+        }
+
+        // 添加事件监听器
+        document.getElementById('connectButton').addEventListener('click', connectWallet);
+    </script>
+</body>
+</html>
