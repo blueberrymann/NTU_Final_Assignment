@@ -4,26 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GenAI and Web3</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <script src="https://unpkg.com/vue@2.6.12/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h3 {
+            color: #409EFF; /* Element UI primary color */
+        }
+    </style>
 </head>
 <body>
-    <h2>
-        My First GenAI and Web3 application(can use in Handheld devices)
-    </h2>
+    <div id="app" class="container">
+        <h3>My First GenAI and Web3 application</h3>
 
-    <h4>
-        My name is Mingce Gao, may I know your name?
-    </h4>
+        <el-form :model="form" @submit.native.prevent="handleSubmit">
+            <el-form-item label="My name is Mingce Gao, may I know your name?">
+                <el-input v-model="form.name" placeholder="Enter your name"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="handleSubmit">Enter</el-button>
+            </el-form-item>
+        </el-form>
+    </div>
 
-    <form action="/main" method="post">
-        <p>
-            <label for="name">Name:</label>
-            <input type="text" name="q">
-        </p>
-        <p>
-            <input type="submit" value="Enter">
-        </p>
-    </form>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    form: {
+                        name: ''
+                    }
+                };
+            },
+            methods: {
+                handleSubmit() {
+                    // 创建一个表单元素以提交数据
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = '/main';
+                    
+                    // 创建一个隐藏的输入元素存储name数据
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'q';
+                    input.value = this.form.name;
 
+                    form.appendChild(input);
+                    document.body.appendChild(form);
 
+                    // 提交表单
+                    form.submit();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
