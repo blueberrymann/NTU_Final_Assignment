@@ -6,78 +6,139 @@
     <title>存储合约界面</title>
     <script src="/static/web3.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #45a049;
+            --background-color: #f0f2f5;
+            --text-color: #333;
+            --card-background: #ffffff;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
         }
+
         .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 100%;
+            background: var(--card-background);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 90%;
+            transition: all 0.3s ease;
         }
+
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
         h1 {
-            color: #45a049;
+            color: var(--primary-color);
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
         }
+
         h2 {
-            color: #333;
-            margin-bottom: 15px;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
         }
-        .left-align {
-            text-align: left;
-            margin-bottom: 20px;
+
+        .section {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            transition: all 0.3s ease;
         }
-        button {
-            background-color: #45a049;
+
+        .section:hover {
+            background-color: #f0f0f0;
+        }
+
+        button, input[type="submit"] {
+            background-color: var(--primary-color);
             color: white;
-            padding: 10px 20px;
+            padding: 0.7rem 1.2rem;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
         }
-        button:hover {
-            background-color: #3d8c42;
+
+        button:hover, input[type="submit"]:hover {
+            background-color: var(--secondary-color);
         }
+
         input[type="number"] {
-            width: 80%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
+            width: 100%;
+            padding: 0.7rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
             border-radius: 5px;
             box-sizing: border-box;
+            font-size: 1rem;
         }
+
         .button-container {
             display: flex;
-            justify-content: center;
-            margin-top: 20px;
+            justify-content: space-around;
+            margin-top: 1.5rem;
         }
+
         .button-container form {
-            margin: 0 10px;
+            margin: 0 0.5rem;
         }
-        .button-container form input[type="submit"] {
-            background-color: #45a049;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100px;
+
+        #walletAddress, #storedValue {
+            word-break: break-all;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
-        .button-container form input[type="submit"]:hover {
-            background-color: #3d8c42;
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1rem;
+            }
+
+            button, input[type="submit"] {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -85,19 +146,19 @@
     <div class="container">
         <h1>存储合约界面</h1>
         
-        <div class="left-align">
+        <div class="section">
             <h2>连接钱包</h2>
             <button id="connectButton">连接钱包</button>
             <p id="walletAddress">未连接</p>
         </div>
 
-        <div class="left-align">
+        <div class="section">
             <h2>存储值</h2>
             <input type="number" id="storeValue" placeholder="输入要存储的值">
             <button onclick="storeValue()">存储</button>
         </div>
         
-        <div class="left-align">
+        <div class="section">
             <h2>查看存储的值</h2>
             <button onclick="viewValue()">查看</button>
             <p id="storedValue">存储的值将在此显示</p>
@@ -115,16 +176,14 @@
     
     <script>
         let accounts = [];
-        let isRequestPending = false; // 用于跟踪请求状态
+        let isRequestPending = false;
 
-        // 初始化web3
         if (typeof web3 !== 'undefined') {
             web3 = new Web3(web3.currentProvider);
         } else {
             web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
         }
 
-        // 合约ABI
         const abi = [
             {
                 "inputs": [{"internalType": "uint256","name": "num","type": "uint256"}],
@@ -142,16 +201,24 @@
             }
         ];
 
-        // 合约地址
         const address = '0x3C8e9bc357e2419Be7Ee5fEc6462fF37C0Cf0c29';
-
-        // 创建合约实例
         const contract = new web3.eth.Contract(abi, address);
 
-        // 连接钱包函数
+        function showLoading(button) {
+            button.innerHTML += '<span class="loading"></span>';
+            button.disabled = true;
+        }
+
+        function hideLoading(button, originalText) {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+
         async function connectWallet() {
             if (isRequestPending) return;
             isRequestPending = true;
+            const button = document.getElementById('connectButton');
+            showLoading(button);
 
             if (window.ethereum) {
                 try {
@@ -161,47 +228,60 @@
                     console.error("连接钱包失败:", error);
                 } finally {
                     isRequestPending = false;
+                    hideLoading(button, '连接钱包');
                 }
             } else {
                 alert("请安装MetaMask!");
                 isRequestPending = false;
+                hideLoading(button, '连接钱包');
             }
         }
 
-        // 存储值函数
         async function storeValue() {
             if (isRequestPending) return;
             isRequestPending = true;
+            const button = event.target;
+            showLoading(button);
 
             const value = document.getElementById('storeValue').value;
             if (accounts.length == 0) {
                 alert('请先连接钱包');
                 isRequestPending = false;
+                hideLoading(button, '存储');
                 return;
             }
             contract.methods.store(value).send({ from: accounts[0] })
                 .on('receipt', function(receipt) {
                     alert('值存储成功');
                     isRequestPending = false;
+                    hideLoading(button, '存储');
                 })
                 .on('error', function(error) {
                     console.error(error);
                     alert('存储值时发生错误');
                     isRequestPending = false;
+                    hideLoading(button, '存储');
                 });
         }
 
-        // 查看存储的值函数
         async function viewValue() {
             if (isRequestPending) return;
             isRequestPending = true;
+            const button = event.target;
+            showLoading(button);
 
-            const value = await contract.methods.view_money().call();
-            document.getElementById('storedValue').innerText = value;
-            isRequestPending = false;
+            try {
+                const value = await contract.methods.view_money().call();
+                document.getElementById('storedValue').innerText = value;
+            } catch (error) {
+                console.error(error);
+                alert('查看值时发生错误');
+            } finally {
+                isRequestPending = false;
+                hideLoading(button, '查看');
+            }
         }
 
-        // 添加事件监听器
         document.getElementById('connectButton').addEventListener('click', connectWallet);
     </script>
 </body>
